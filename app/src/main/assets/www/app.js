@@ -77,7 +77,7 @@
     U.nativeCall('reverseGeocode', lat, lon).then(g => {
       if (g.ok && g.data) {
         const a = addrName(g.data);
-        if (st.gpsPlace && st.gpsPlace.lat === lat) { st.gpsPlace.name = a.name; st.gpsPlace.sub = a.sub; store.set('gpsPlace', st.gpsPlace); render(); }
+        if (st.gpsPlace && st.gpsPlace.lat === lat) { st.gpsPlace.name = a.name; st.gpsPlace.sub = a.sub; store.set('gpsPlace', st.gpsPlace); render(); if (st.gpsOn) syncWidget(); }
       }
     });
     return true;
@@ -122,8 +122,15 @@
     }
     render();
   }
+  function syncWidget() {
+    const p = place();
+    if (p && window.NativeApi && window.NativeApi.setWidgetPlace) {
+      try { window.NativeApi.setWidgetPlace(JSON.stringify({ lat: p.lat, lon: p.lon, name: p.name, sub: p.sub || '', gps: !!p.gps })); } catch (e) { }
+    }
+  }
   async function loadAll(force) {
     const p = place(); if (!p) return;
+    syncWidget();
     st.loadingAll = true; render();
     await Promise.all(SOURCES.map(s => loadSrc(p, s.k, force)));
     st.loadingAll = false; render();

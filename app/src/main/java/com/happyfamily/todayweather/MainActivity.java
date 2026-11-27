@@ -330,6 +330,9 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void setWidgetPlace(String json) { WidgetUpdater.savePlace(getApplicationContext(), json); }
+
+        @JavascriptInterface
         public void exitApp() { main.post(MainActivity.this::finishAndRemoveTask); }
     }
 }

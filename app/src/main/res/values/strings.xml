@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">오늘날씨 비교</string>
+    <string name="widget_weather_name">오늘날씨</string>
+    <string name="widget_weather_desc">현재 날씨와 시간별·주간 예보. 크기를 바꾸면 배치가 바뀌어요.</string>
+    <string name="widget_compare_name">출처 비교</string>
+    <string name="widget_compare_desc">기상청·노르웨이·유럽·미국·일본 예보를 한눈에 비교</string>
 </resources>
