@@ -8,3 +8,4 @@ keys.properties
 signing.properties
 .idea/
 *.iml
+test-apk/
