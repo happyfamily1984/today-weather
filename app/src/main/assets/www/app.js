@@ -195,13 +195,13 @@
       <div><span>${Icons.ui.wind}바람</span><b>${c.ws != null ? (+c.ws).toFixed(1) + 'm/s' : '–'}</b></div>
       ${pop != null ? `<div><span>${Icons.ui.umb}강수확률</span><b class="rain">${pop}%</b></div>` : `<div><span>${Icons.ui.umb}강수량</span><b class="rain">${t.pr != null ? t.pr + '㎜' : '–'}</b></div>`}
     </div>`;
-    // 시간별
-    const dk = addDays(today(), st.hourDay);
+    // 시간별: 지금부터 내일 자정까지 이어서
     const nk = nowK();
-    const hs = d.hours.filter(x => x.k.startsWith(dk) && (st.hourDay > 0 || x.k >= nk));
-    h += `<div class="card"><div class="ch"><h3>${Icons.ui.clock}시간별 예보</h3><div class="seg"><button class="${st.hourDay === 0 ? 'on' : ''}" data-act="hday" data-v="0">오늘</button><button class="${st.hourDay === 1 ? 'on' : ''}" data-act="hday" data-v="1">내일</button></div></div>
-      <div class="hours num">${hs.length ? hs.map(x => `<div class="h ${x.k === nk ? 'now' : ''}"><span>${x.k === nk ? '지금' : +x.k.slice(8, 10) + '시'}</span>${Icons.weather(x.wc, 38, isNight(x.k))}<span class="t">${deg(x.tp)}</span><span class="p">${popText(x.pop, x.pr)}</span></div>`).join('')
-        : `<div class="empty" style="width:100%">이 출처는 ${st.hourDay ? '내일' : '오늘 남은'} 시간별 예보가 없어요</div>`}</div></div>`;
+    const tmr = addDays(today(), 1), end = addDays(today(), 2);
+    const hs = d.hours.filter(x => x.k >= nk && x.k < end + '00');
+    h += `<div class="card"><div class="ch"><h3>${Icons.ui.clock}시간별 예보</h3><div class="seg"><button class="on" data-act="hday" data-v="0">오늘</button><button data-act="hday" data-v="1">내일</button></div></div>
+      <div class="hours num" id="hours">${hs.length ? hs.map(x => { const mid = x.k === tmr + '00'; return `<div class="h ${x.k === nk ? 'now' : ''} ${mid ? 'mid' : ''}" ${mid ? 'data-tmr="1"' : ''}><span>${x.k === nk ? '지금' : mid ? '내일' : +x.k.slice(8, 10) + '시'}</span>${Icons.weather(x.wc, 38, isNight(x.k))}<span class="t">${deg(x.tp)}</span><span class="p">${popText(x.pop, x.pr)}</span></div>`; }).join('')
+        : `<div class="empty" style="width:100%">이 출처는 시간별 예보가 없어요</div>`}</div></div>`;
     // 이번 주
     const ds = d.days.slice(0, 7);
     h += `<div class="card"><div class="ch"><h3>${Icons.ui.cal}이번 주</h3><button class="aux" data-act="go" data-s="week">전체보기 ${Icons.ui.right}</button></div>
@@ -462,9 +462,17 @@
     else m.scrollTop = 0;
     lastScreen = st.screen;
     $('#nav').innerHTML = nav();
+    const he = document.getElementById('hours');
+    if (he) { he.onscroll = syncHourSeg; syncHourSeg(); }
     if (st.screen === 'home' && document.querySelector('.tab.on') && lastScreen !== null) { }
   }
 
+  function syncHourSeg() {
+    const he = document.getElementById('hours'); if (!he) return;
+    const m = he.querySelector('[data-tmr]');
+    const isTmr = !!m && he.scrollLeft + he.clientWidth / 2 >= m.offsetLeft - 6;
+    document.querySelectorAll('[data-act=hday]').forEach(b => b.classList.toggle('on', (+b.dataset.v === 1) === isTmr));
+  }
   function go(screen) {
     if (st.screen === screen) return;
     st.screen = screen; st.editMode = false;
@@ -484,7 +492,7 @@
     const a = el.dataset.act;
     if (a === 'go') go(el.dataset.s);
     else if (a === 'src') { st.src = el.dataset.k; store.set('src', st.src); render(); el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); const p = place(); if (p) loadSrc(p, st.src, false); }
-    else if (a === 'hday') { st.hourDay = +el.dataset.v; render(); const he = document.querySelector('.hours'); if (he) he.scrollLeft = 0; }
+    else if (a === 'hday') { const he = document.getElementById('hours'); if (he) { const m = he.querySelector('[data-tmr]'); he.scrollTo({ left: +el.dataset.v && m ? m.offsetLeft - 6 : 0, behavior: 'smooth' }); } }
     else if (a === 'cmpv') { st.cmpView = el.dataset.v; render(); }
     else if (a === 'refresh') { toast('새로 불러오는 중'); refresh(true); }
     else if (a === 'retry') { const p = place(); if (p) loadSrc(p, el.dataset.k, true); }

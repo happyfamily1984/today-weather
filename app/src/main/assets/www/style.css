@@ -82,6 +82,9 @@ main::-webkit-scrollbar{display:none}
 .h .t{font-size:18px;font-weight:800;color:var(--ink)}
 .h .p{font-size:13px;font-weight:700;color:var(--rain);min-height:17px}
 .h.now>span:first-child{color:var(--ink);font-weight:700}
+.h.mid{border-left:2px solid rgba(30,111,230,.35)}
+.h.mid>span:first-child{color:var(--blue);font-weight:800}
+.hours{position:relative}
 .wk{display:grid;grid-template-columns:repeat(7,1fr)}
 .wk .h{width:auto}
 .wk .h .t{font-size:16px}
