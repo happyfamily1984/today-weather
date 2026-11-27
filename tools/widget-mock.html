@@ -1,0 +1,72 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,'Noto Sans KR',sans-serif;background:#222}
+.phone{width:396px;min-height:844px;position:relative;overflow:hidden;background:linear-gradient(160deg,#3B4A6B 0%,#6C5B7B 45%,#C06C84 75%,#F8B195 100%);padding:52px 16px 0}
+.status{position:absolute;top:10px;left:20px;right:20px;display:flex;justify-content:space-between;color:#fff;font:600 13px system-ui}
+.grid{display:flex;flex-wrap:wrap;gap:14px;padding-bottom:30px}
+.lab{width:100%;color:rgba(255,255,255,.9);font-size:12.5px;font-weight:700;margin:10px 0 -6px}
+.w{border-radius:24px;background:linear-gradient(165deg,#2F86EE 0%,#62A9F2 55%,#A9D3F7 100%);color:#fff;overflow:hidden;position:relative;box-shadow:0 6px 18px rgba(0,0,0,.25);padding:12px 14px;display:flex;flex-direction:column}
+.w{width:80px;height:80px;flex:none}.c2{width:174px}.c4{width:362px}.r2{height:174px}.r4{height:362px}
+.loc{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:4px;opacity:.95;white-space:nowrap;overflow:hidden}
+.loc svg{flex:none}
+.src{font-size:10px;opacity:.85;font-weight:600}
+.tp{font-weight:800;letter-spacing:-2px;line-height:1}
+.hl{font-size:12px;opacity:.95}
+.glass{background:rgba(255,255,255,.88);color:#10233F;border-radius:16px}
+.hrs{display:flex;justify-content:space-between}
+.hr{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:#5D6E86}
+.hr b{font-size:14px;color:#10233F}.hr i{font-style:normal;color:#1E74E8;font-weight:700;font-size:10.5px;min-height:13px}
+.hr.mid span{color:#1E6FE6;font-weight:800}
+.day{display:grid;grid-template-columns:34px 26px 34px 1fr;align-items:center;gap:6px;font-size:12.5px;padding:0;height:28px}
+.day b{font-weight:800}.track{height:5px;border-radius:3px;background:rgba(16,35,63,.1);position:relative}.track u{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#4EA3EF,#F59A23)}
+.rng{display:grid;grid-template-columns:24px 1fr 24px;gap:6px;align-items:center;font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:12px}td{padding:3.5px 2px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}td:first-child{text-align:left}
+td i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.upd{font-size:9.5px;opacity:.8}
+.num{font-variant-numeric:tabular-nums}
+</style></head><body>
+<div id="out" style="display:flex;gap:24px;padding:20px"></div>
+<script src="/home/user/today-weather/app/src/main/assets/www/icons.js"></script><script src="/home/user/today-weather/app/src/main/assets/www/util.js"></script><script src="/home/user/today-weather/app/src/main/assets/www/sources.js"></script>
+<script>
+(async()=>{
+const loc={lat:37.4292,lon:126.9876};
+const [k,c]=await Promise.all([Sources.fetchSource('kma',loc),Promise.all(Sources.SOURCES.map(s=>Sources.fetchSource(s.k,loc).catch(()=>null)))]);
+const {deg,wcText,kst,hourKey,dayKey,addDays,dowOf,DOW}=U;
+const pin='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 2.5 2.8 10.3c-.9.4-.8 1.6.1 1.9l7.1 2 2 7.1c.3.9 1.5 1 1.9.1z"/></svg>';
+const L='<div class="loc">'+pin+'과천시 별양동</div>';
+const cur=k.cur,td=k.days[0],nk=hourKey(kst());
+const hrs=(n,step=1)=>k.hours.filter(h=>h.k>=nk).filter((h,i)=>i%step==0).slice(0,n);
+const tmr=addDays(dayKey(kst()),1)+'00';
+const hrHtml=(n,step)=>'<div class="hrs">'+hrs(n,step).map((h,i)=>'<div class="hr '+(h.k==tmr?'mid':'')+'"><span>'+(i==0?'지금':h.k==tmr?'내일':+h.k.slice(8)+'시')+'</span>'+Icons.weather(h.wc,26,+h.k.slice(8)<6||+h.k.slice(8)>=19)+'<b>'+deg(h.tp)+'</b><i>'+(h.pop?h.pop+'%':'')+'</i></div>').join('')+'</div>';
+const night=+nk.slice(8)<6||+nk.slice(8)>=19;
+const t=kst();const upd='<span class="upd">'+t.h+':'+String(t.mi).padStart(2,'0')+' 기상청</span>';
+const ds=k.days.slice(0,5),lo=Math.min(...ds.map(d=>d.mn)),hi=Math.max(...ds.map(d=>d.mx));
+const days=ds.map((d,i)=>'<div class="day"><b>'+(i?DOW[dowOf(d.d)]:'오늘')+'</b>'+Icons.weather(d.wc,24)+'<span style="color:#1E74E8;font-weight:700;font-size:11px">'+(d.pop?d.pop+'%':'')+'</span><div class="rng num"><span style="color:#5D6E86">'+deg(d.mn)+'</span><div class="track"><u style="left:'+((d.mn-lo)/(hi-lo)*100)+'%;right:'+(100-(d.mx-lo)/(hi-lo)*100)+'%"></u></div><span>'+deg(d.mx)+'</span></div></div>').join('');
+const cmp='<table>'+Sources.SOURCES.map((s,i)=>{const x=c[i];const d=x&&x.days[0];return '<tr><td><i style="background:'+({kma:'#1E6FE6',metno:'#E2324A',ecmwf:'#18A36C',gfs:'#7A4DE0',jma:'#F08A12'})[s.k]+'"></i>'+s.n.replace(/ .*/,'')+'</td><td>'+(x?Icons.weather(x.cur.wc,18):'')+'</td><td>'+deg(x&&x.cur.tp)+'</td><td>'+deg(d&&d.mx)+'</td><td style="color:#5D6E86">'+deg(d&&d.mn)+'</td><td style="color:#1E74E8">'+(d?(d.pop!=null?d.pop+'%':d.pr+'㎜'):'')+'</td></tr>'}).join('')+'</table>';
+const P1='<div class="phone"><div class="status"><span>17:02</span><span>5G 82%</span></div><div class="grid">'+
+'<div class="lab">① 소형 1×1 · 2×1</div>'+
+'<div class="w" style="padding:8px;align-items:center;justify-content:center;gap:0">'+Icons.weather(cur.wc,34,night)+'<div class="tp num" style="font-size:22px;letter-spacing:-1px">'+deg(cur.tp)+'</div></div>'+
+'<div class="w c2" style="flex-direction:row;align-items:center;gap:8px;padding:10px 14px">'+Icons.weather(cur.wc,48,night)+'<div style="min-width:0"><div class="tp num" style="font-size:30px">'+deg(cur.tp)+'</div><div class="hl num" style="white-space:nowrap">'+deg(td.mx)+' / '+deg(td.mn)+'</div></div></div>'+
+'<div class="lab">② 정사각 2×2</div>'+
+'<div class="w c2 r2" style="justify-content:space-between">'+L+'<div style="display:flex;align-items:center;justify-content:space-between"><div class="tp num" style="font-size:50px">'+deg(cur.tp)+'</div>'+Icons.weather(cur.wc,56,night)+'</div><div><div style="font-weight:800;font-size:15px">'+wcText(cur.wc)+'</div><div class="hl num">최고 '+deg(td.mx)+' · 최저 '+deg(td.mn)+'</div><div class="hl num">강수확률 '+(td.popRest??td.pop)+'%</div></div></div>'+
+'<div class="w c2 r2" style="justify-content:space-between;background:linear-gradient(165deg,#0C2452,#2F5FA8)">'+L+'<div class="glass" style="padding:8px 10px;background:rgba(255,255,255,.12);color:#fff"><div style="font-size:11px;opacity:.8">오늘 최고 / 최저</div>'+Sources.SOURCES.slice(0,4).map((s,i)=>{const d=c[i]&&c[i].days[0];return '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;padding:2px 0"><span>'+s.n.replace(/ .*/,'')+'</span><span class="num">'+deg(d&&d.mx)+' / '+deg(d&&d.mn)+'</span></div>'}).join('')+'</div><div class="src">출처 4곳 비교</div></div>'+
+'<div class="lab">③ 가로 4×1</div>'+
+'<div class="w c4" style="flex-direction:row;align-items:center;gap:10px;padding:8px 16px">'+Icons.weather(cur.wc,52,night)+'<div class="tp num" style="font-size:38px">'+deg(cur.tp)+'</div><div style="flex:1;min-width:0"><div class="loc">'+pin+'과천시 별양동</div><div class="hl num">'+wcText(cur.wc)+' · '+deg(td.mx)+' / '+deg(td.mn)+' · ☂ '+(td.popRest??td.pop)+'%</div></div></div>'+
+'<div class="lab">④ 중형 4×2</div>'+
+'<div class="w c4 r2" style="gap:8px;padding:12px">'+
+'<div style="display:flex;align-items:center;gap:8px;padding:0 4px">'+Icons.weather(cur.wc,44,night)+'<div class="tp num" style="font-size:36px">'+deg(cur.tp)+'</div><div style="flex:1;min-width:0">'+L+'<div class="hl num">'+wcText(cur.wc)+' · '+deg(td.mx)+' / '+deg(td.mn)+'</div></div>'+upd+'</div>'+
+'<div class="glass" style="padding:6px 8px;flex:1;display:flex;flex-direction:column;justify-content:center">'+hrHtml(6,1)+'</div></div>'+
+'</div></div>';
+const P2='<div class="phone"><div class="status"><span>17:02</span><span>5G 82%</span></div><div class="grid">'+
+'<div class="lab">⑤ 대형 4×4 (시간별 + 주간)</div>'+
+'<div class="w c4 r4" style="gap:7px;padding:10px 12px">'+
+'<div style="display:flex;align-items:center;gap:8px;padding:0 4px">'+Icons.weather(cur.wc,48,night)+'<div class="tp num" style="font-size:40px">'+deg(cur.tp)+'</div><div style="flex:1;min-width:0">'+L+'<div class="hl num">'+wcText(cur.wc)+' · 최고 '+deg(td.mx)+' · 최저 '+deg(td.mn)+'</div><div class="hl num">체감 '+deg(cur.fl)+' · 습도 '+cur.rh+'%</div></div></div>'+
+'<div class="glass" style="padding:6px 8px">'+hrHtml(6,1)+'</div>'+
+'<div class="glass" style="padding:4px 12px;flex:1;display:flex;flex-direction:column;justify-content:space-around">'+days+'</div>'+
+'<div style="display:flex;justify-content:space-between;padding:0 4px">'+upd+'<span class="upd">탭하면 앱 열기 · ↻</span></div></div>'+
+'<div class="lab">⑥ 출처 비교 4×2</div>'+
+'<div class="w c4 r2" style="padding:10px 12px;gap:6px"><div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px">'+L+'<span class="src">현재 · 최고 · 최저 · 강수</span></div><div class="glass" style="padding:2px 10px;flex:1">'+cmp+'</div></div>'+
+'</div></div>';
+document.getElementById('out').innerHTML=P1+P2;window.done=1;
+})();
+</script></body></html>
