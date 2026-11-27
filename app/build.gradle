@@ -1,0 +1,42 @@
+plugins { id 'com.android.application' }
+
+// 기상청 인증키는 공개 저장소에 올리지 않는다: keys.properties(깃 제외) 또는 환경변수 KMA_SERVICE_KEY
+def keysFile = rootProject.file('keys.properties')
+def keys = new Properties()
+if (keysFile.exists()) keysFile.withInputStream { keys.load(it) }
+def kmaKey = keys.getProperty('KMA_SERVICE_KEY', System.getenv('KMA_SERVICE_KEY') ?: '')
+
+def signFile = rootProject.file('signing.properties')
+def sign = new Properties()
+if (signFile.exists()) signFile.withInputStream { sign.load(it) }
+
+android {
+    namespace 'com.happyfamily.todayweather'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.happyfamily.todayweather'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+        buildConfigField 'String', 'KMA_KEY', '"' + kmaKey.replace('"', '') + '"'
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        if (sign.getProperty('storeFile')) {
+            release {
+                storeFile rootProject.file(sign.getProperty('storeFile'))
+                storePassword sign.getProperty('storePassword')
+                keyAlias sign.getProperty('keyAlias')
+                keyPassword sign.getProperty('keyPassword')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (sign.getProperty('storeFile')) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
