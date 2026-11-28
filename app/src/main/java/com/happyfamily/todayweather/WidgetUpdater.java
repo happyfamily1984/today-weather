@@ -239,7 +239,9 @@ final class WidgetUpdater {
                     rv.setTextViewText(R.id.kfoot, "출처 " + shown + "곳 비교");
                 } else {
                     rv = new RemoteViews(c.getPackageName(), h >= 220 ? R.layout.c_4x4 : R.layout.c_4x2);
-                    rv.setTextViewText(R.id.chead, "현재 · 최고 · 최저 · 강수");
+                    rv.setImageViewResource(R.id.ic, icon(wc, nt));
+                    rv.setTextViewText(R.id.tp, tp);
+                    rv.setTextViewText(R.id.cond, text(wc) + " · " + hilo);
                     int[] cd = {R.id.cd0, R.id.cd1, R.id.cd2, R.id.cd3, R.id.cd4}, cn = {R.id.cn0, R.id.cn1, R.id.cn2, R.id.cn3, R.id.cn4},
                             ci = {R.id.ci0, R.id.ci1, R.id.ci2, R.id.ci3, R.id.ci4}, cc = {R.id.cc0, R.id.cc1, R.id.cc2, R.id.cc3, R.id.cc4},
                             cx = {R.id.cx0, R.id.cx1, R.id.cx2, R.id.cx3, R.id.cx4}, cm = {R.id.cm0, R.id.cm1, R.id.cm2, R.id.cm3, R.id.cm4},
